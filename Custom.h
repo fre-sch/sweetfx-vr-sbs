@@ -28,7 +28,9 @@
 // Change if your lenses requires correction.
 // DK2 values = (0.99, -0.004, 1.014, 0)
 // DEFAULT (None) = (1.0, 0.0, 1.0, 0)
-#define ChromAbParam float4(1.0, 0.0, 1.0, 0)
+#ifndef ChromAbParam
+    #define ChromAbParam float4(1.0, 0.0, 1.0, 0)
+#endif
 
 // Distortion Scaling.
 // Change if your lenses require different correction.
