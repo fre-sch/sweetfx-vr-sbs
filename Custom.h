@@ -64,7 +64,7 @@ float4 OculusDroidWarp( float4 colorInput, float2 tex )
     float2 Scale;
     float2 ScaleIn;
     float2 scaleCenter = float2(0.5,0.5); 
-    float3 tempColor;
+    float4 result = float4(0f, 0f, 0f, 1f);
     
     Scale.x = (Width / 2f) * DistortionFactor;
     Scale.y = (Height / 2f) * DistortionFactor * AspectRatio;
@@ -81,7 +81,7 @@ float4 OculusDroidWarp( float4 colorInput, float2 tex )
     float2 theta = (texCoord - LensCenter) * ScaleIn; 
     float rSq =  theta.x * theta.x + theta.y * theta.y;
     float2 theta1 = HmdWarp(theta);
-    texCoord = LensCenter + Scale * theta1; 
+    texCoord = LensCenter + Scale * theta1;
     
     if (tex.x < 0.5) {
         // Blue
@@ -92,7 +92,7 @@ float4 OculusDroidWarp( float4 colorInput, float2 tex )
 #endif
         tcBlue.xy = (tcBlue.xy - scaleCenter) * ScaleFactor + scaleCenter;  
         tcBlue.x = tcBlue.x * 0.5;   
-        float blue = myTex2D(s0, tcBlue).z;
+        result.z = myTex2D(s0, tcBlue).z;
 
         // Green (no scaling)
         float2 tcGreen = LensCenter + Scale * theta1;
@@ -101,7 +101,7 @@ float4 OculusDroidWarp( float4 colorInput, float2 tex )
 #endif
         tcGreen.xy = (tcGreen.xy - scaleCenter) * ScaleFactor + scaleCenter;
         tcGreen.x = tcGreen.x * 0.5;     
-        float green = myTex2D(s0, tcGreen).y;
+        result.y = myTex2D(s0, tcGreen).y;
        
         // Red
         float2 thetaRed = theta1 * (ChromAbParam.x + ChromAbParam.y * rSq);
@@ -111,7 +111,7 @@ float4 OculusDroidWarp( float4 colorInput, float2 tex )
 #endif
         tcRed.xy = (tcRed.xy - scaleCenter) * ScaleFactor + scaleCenter;   
         tcRed.x = tcRed.x * 0.5;     
-        float red = myTex2D(s0, tcRed).x;
+        result.x = myTex2D(s0, tcRed).x;
     }
     else {
         // Blue
@@ -122,7 +122,7 @@ float4 OculusDroidWarp( float4 colorInput, float2 tex )
 #endif
         tcBlue.xy = (tcBlue.xy - scaleCenter) * ScaleFactor + scaleCenter; 
         tcBlue.x = (tcBlue.x + 1.0) * 0.5;   
-        float blue = myTex2D(s0, tcBlue).z;
+        result.z = myTex2D(s0, tcBlue).z;
 
         // Green (no scaling)
         float2 tcGreen = LensCenter + Scale * theta1;
@@ -131,7 +131,7 @@ float4 OculusDroidWarp( float4 colorInput, float2 tex )
 #endif
         tcGreen.xy = (tcGreen.xy - scaleCenter) * ScaleFactor + scaleCenter;
         tcGreen.x = (tcGreen.x + 1.0) * 0.5;     
-        float green = myTex2D(s0, tcGreen).y;
+        result.y = myTex2D(s0, tcGreen).y;
 
         // Red
         float2 thetaRed = theta1 * (ChromAbParam.x + ChromAbParam.y * rSq);
@@ -141,7 +141,7 @@ float4 OculusDroidWarp( float4 colorInput, float2 tex )
 #endif
         tcRed.xy = (tcRed.xy - scaleCenter) * ScaleFactor + scaleCenter;  
         tcRed.x = (tcRed.x + 1.0) * 0.5;      
-        float red = myTex2D(s0, tcRed).x;
+        result.x = myTex2D(s0, tcRed).x;
     }
 
      //Scale rest of screen 
@@ -153,23 +153,21 @@ float4 OculusDroidWarp( float4 colorInput, float2 tex )
     texCoord.xy = (texCoord.xy - scaleCenter) * ScaleFactor + scaleCenter;   
 
 #if VignetteToggle == 1
-    tempColor = float3(red, green, blue);
-
-    if(texCoord.x>0.98){
-      float vignetteFactor = 50-50*texCoord.x;
-      tempColor*=vignetteFactor;
+    if (texCoord.x > 0.98) {
+      float vignetteFactor = 50 - 50 * texCoord.x;
+      result *= vignetteFactor;
     }
-    if(texCoord.y>0.98){
-      float vignetteFactor = 50-50*texCoord.y;
-      tempColor*=vignetteFactor;
+    if (texCoord.y > 0.98) {
+      float vignetteFactor = 50 - 50 * texCoord.y;
+      result *= vignetteFactor;
     }
-    if(texCoord.x<0.02){
-      float vignetteFactor = 50*texCoord.x;
-      tempColor*=vignetteFactor;
+    if (texCoord.x < 0.02) {
+      float vignetteFactor = 50 * texCoord.x;
+      result *= vignetteFactor;
     }
-    if(texCoord.y<0.02){
-      float vignetteFactor = 50*texCoord.y;
-      tempColor*=vignetteFactor;
+    if (texCoord.y < 0.02) {
+      float vignetteFactor = 50 * texCoord.y;
+      result *= vignetteFactor;
     }
 #endif
 
@@ -180,7 +178,7 @@ float4 OculusDroidWarp( float4 colorInput, float2 tex )
         return 0;
     }
     else {
-        return float4(tempColor, 1.0);
+        return result;
     }
 }
 
